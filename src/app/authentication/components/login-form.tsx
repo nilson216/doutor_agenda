@@ -3,6 +3,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
+import { toast } from "sonner";
 import { z } from "zod";
 
 import { Button } from "@/components/ui/button";
@@ -52,6 +53,9 @@ const LoginForm = () => {
         onSuccess: () => {
           router.push("/dashboard");
         },
+        onError: () => {
+          toast.error("E-mail ou senha incorretas")
+        }
       }     
     );
   };
