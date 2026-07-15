@@ -11,6 +11,7 @@ import { useRouter } from "next/navigation";
 // router.refresh()               // recarrega os dados da rota atual (re-executa Server Components) sem perder o estado do client
 // router.prefetch("/dashboard")  // pré-carrega uma rota em segundo plano (deixa a navegação futura mais rápida)
 import { useForm } from "react-hook-form";
+import { toast } from "sonner";
 import z from "zod"
 
 import { Button } from "@/components/ui/button";
@@ -51,7 +52,15 @@ const SignUpForm = () => {
         }, {
           onSuccess: () => {
             router.push("/dashboard")
-          }
+          },
+          onError: (ctx) => {
+            // console.log(ctx.error.code)
+            if (ctx.error.code === "USER_ALREADY_EXISTS") {
+              toast.error("E-mail já cadastrado.");
+              return;
+            }
+            toast.error("Erro ao criar conta.");
+          },
         })
       }
     
