@@ -2,6 +2,14 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";
+import { useRouter } from "next/navigation";
+// const router = useRouter()
+// router.push("/dashboard")      // navega para uma nova rota (adiciona no histórico)
+// router.replace("/login")       // navega, mas substitui a rota atual no histórico (não dá pra voltar com o botão "voltar")
+// router.back()                  // volta uma página (como o botão voltar do navegador)
+// router.forward()               // avança uma página
+// router.refresh()               // recarrega os dados da rota atual (re-executa Server Components) sem perder o estado do client
+// router.prefetch("/dashboard")  // pré-carrega uma rota em segundo plano (deixa a navegação futura mais rápida)
 import { useForm } from "react-hook-form";
 import z from "zod"
 
@@ -9,6 +17,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { authClient } from "@/lib/auth-client";
 
 const registerSchema = z.object({
     name: z.string().trim().min(1, { message: "Nome é obrigatório" }),
@@ -24,6 +33,7 @@ const registerSchema = z.object({
   });
 
 const SignUpForm = () => {
+    const router = useRouter()
     const form = useForm<z.infer<typeof registerSchema>>({
         resolver: zodResolver(registerSchema),
         defaultValues: {
@@ -33,8 +43,16 @@ const SignUpForm = () => {
         },
       });
     
-      function onSubmit(values: z.infer<typeof registerSchema>) {
-        console.log(values)
+      async function onSubmit(values: z.infer<typeof registerSchema>) {
+        await authClient.signUp.email({
+          email: values.email,
+          password: values.password,
+          name: values.name,
+        }, {
+          onSuccess: () => {
+            router.push("/dashboard")
+          }
+        })
       }
     
   return (
