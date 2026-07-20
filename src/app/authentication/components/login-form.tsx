@@ -3,6 +3,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
+import { FcGoogle } from "react-icons/fc";
 import { toast } from "sonner";
 import { z } from "zod";
 
@@ -60,6 +61,13 @@ const LoginForm = () => {
     );
   };
 
+  const handleGoogleLogin = async () => {
+    await authClient.signIn.social({
+      provider: "google",
+      callbackURL: "/dashboard"
+    });
+  }
+
   return (
     <Card>
       <Form {...form}>
@@ -112,6 +120,10 @@ const LoginForm = () => {
                 ) : (
                   "Entrar"
                 )}
+              </Button>
+              <Button variant="outline" className="w-full" type="button" onClick={handleGoogleLogin}>
+                <FcGoogle />
+                Entrar com Google
               </Button>
             </div>
           </CardFooter>
