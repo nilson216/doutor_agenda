@@ -22,20 +22,18 @@ export const upsertPatient = actionClient
     if (!session?.user.clinic?.id) {
       throw new Error("Clinic not found");
     }
+
     await db
       .insert(patientsTable)
       .values({
         ...parsedInput,
         id: parsedInput.id,
-        clinicId: session.user.clinic.id,
+        clinicId: session?.user.clinic?.id,
       })
       .onConflictDoUpdate({
         target: [patientsTable.id],
         set: {
-          name: parsedInput.name,
-          email: parsedInput.email,
-          phoneNumber: parsedInput.phoneNumber,
-          sex: parsedInput.sex,
+          ...parsedInput,
         },
       });
     revalidatePath("/patients");
