@@ -2,11 +2,14 @@ import { eq } from "drizzle-orm";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
+import { PageActions, PageContainer, PageContent, PageDescription, PageHeader, PageHeaderContent, PageTitle } from "@/components/ui/page-container";
 import { db } from "@/db";
 import { usersToClinicsTable } from "@/db/schema";
 import { auth } from "@/lib/auth";
 
-import SignOutButton from "./_components/sign-out-button";
+import { DatePicker } from "./date-picker";
+
+
 
 const DashboardPage = async () => {
   const session = await auth.api.getSession({
@@ -22,12 +25,22 @@ const DashboardPage = async () => {
     redirect("/clinic-form");
   }
   return (
-    <div>
-      <h1>Dashboard</h1>
-      <h1>{session?.user?.name}</h1>
-      <h1>{session?.user?.email}</h1>
-      <SignOutButton />
-    </div>
+    <PageContainer>
+    <PageHeader>
+      <PageHeaderContent>
+        <PageTitle>Pacientes</PageTitle>
+        <PageDescription>
+          Gerencie os pacientes da sua clínica
+        </PageDescription>
+      </PageHeaderContent>
+      <PageActions>
+      <DatePicker />
+      </PageActions>
+    </PageHeader>
+    <PageContent>
+      <></>
+    </PageContent>
+  </PageContainer>
   );
 };
 
