@@ -1,5 +1,8 @@
+"use client";
+
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useAction } from "next-safe-action/hooks";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { PatternFormat } from "react-number-format";
 import { toast } from "sonner";
@@ -32,29 +35,32 @@ import {
 } from "@/components/ui/select";
 import { patientsTable } from "@/db/schema";
 
-import { patientSexOptions } from "../_constants";
-
 const formSchema = z.object({
   name: z.string().trim().min(1, {
     message: "Nome é obrigatório.",
   }),
-  email: z.email({
+  email: z.string().email({
     message: "Email inválido.",
   }),
-  phoneNumber: z.string().trim().min(14, {
+  phoneNumber: z.string().trim().min(1, {
     message: "Número de telefone é obrigatório.",
   }),
   sex: z.enum(["male", "female"], {
-    message: "Sexo é obrigatório.",
+    required_error: "Sexo é obrigatório.",
   }),
 });
 
 interface UpsertPatientFormProps {
+  isOpen: boolean;
   patient?: typeof patientsTable.$inferSelect;
   onSuccess?: () => void;
 }
 
-const UpsertPatientForm = ({ patient, onSuccess }: UpsertPatientFormProps) => {
+const UpsertPatientForm = ({
+  patient,
+  onSuccess,
+  isOpen,
+}: UpsertPatientFormProps) => {
   const form = useForm<z.infer<typeof formSchema>>({
     shouldUnregister: true,
     resolver: zodResolver(formSchema),
@@ -65,19 +71,20 @@ const UpsertPatientForm = ({ patient, onSuccess }: UpsertPatientFormProps) => {
       sex: patient?.sex ?? undefined,
     },
   });
+
+  useEffect(() => {
+    if (isOpen) {
+      form.reset(patient);
+    }
+  }, [isOpen, form, patient]);
+
   const upsertPatientAction = useAction(upsertPatient, {
     onSuccess: () => {
-      toast.success(
-        patient
-          ? "Paciente atualizado com sucesso."
-          : "Paciente adicionado com sucesso.",
-      );
+      toast.success("Paciente salvo com sucesso.");
       onSuccess?.();
     },
     onError: () => {
-      toast.error(
-        patient ? "Erro ao atualizar paciente." : "Erro ao adicionar paciente.",
-      );
+      toast.error("Erro ao salvar paciente.");
     },
   });
 
@@ -109,7 +116,10 @@ const UpsertPatientForm = ({ patient, onSuccess }: UpsertPatientFormProps) => {
               <FormItem>
                 <FormLabel>Nome do paciente</FormLabel>
                 <FormControl>
-                  <Input {...field} />
+                  <Input
+                    placeholder="Digite o nome completo do paciente"
+                    {...field}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -122,7 +132,11 @@ const UpsertPatientForm = ({ patient, onSuccess }: UpsertPatientFormProps) => {
               <FormItem>
                 <FormLabel>Email</FormLabel>
                 <FormControl>
-                  <Input type="email" {...field} />
+                  <Input
+                    type="email"
+                    placeholder="exemplo@email.com"
+                    {...field}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -138,9 +152,10 @@ const UpsertPatientForm = ({ patient, onSuccess }: UpsertPatientFormProps) => {
                   <PatternFormat
                     format="(##) #####-####"
                     mask="_"
+                    placeholder="(11) 99999-9999"
                     value={field.value}
-                    onValueChange={(values) => {
-                      field.onChange(values.formattedValue);
+                    onValueChange={(value) => {
+                      field.onChange(value.value);
                     }}
                     customInput={Input}
                   />
@@ -155,18 +170,18 @@ const UpsertPatientForm = ({ patient, onSuccess }: UpsertPatientFormProps) => {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Sexo</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <Select
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                >
                   <FormControl>
                     <SelectTrigger className="w-full">
                       <SelectValue placeholder="Selecione o sexo" />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {patientSexOptions.map((option) => (
-                      <SelectItem key={option.value} value={option.value}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
+                    <SelectItem value="male">Masculino</SelectItem>
+                    <SelectItem value="female">Feminino</SelectItem>
                   </SelectContent>
                 </Select>
                 <FormMessage />
@@ -174,12 +189,12 @@ const UpsertPatientForm = ({ patient, onSuccess }: UpsertPatientFormProps) => {
             )}
           />
           <DialogFooter>
-            <Button type="submit" disabled={upsertPatientAction.isPending}>
-              {upsertPatientAction.isPending
-                ? "Salvando..."
-                : patient
-                  ? "Salvar"
-                  : "Adicionar"}
+            <Button
+              type="submit"
+              disabled={upsertPatientAction.isPending}
+              className="w-full"
+            >
+              {upsertPatientAction.isPending ? "Salvando..." : "Salvar"}
             </Button>
           </DialogFooter>
         </form>
