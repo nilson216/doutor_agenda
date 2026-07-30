@@ -1,23 +1,42 @@
 "use server";
 
 import { headers } from "next/headers";
-import { redirect } from "next/navigation";
+import Stripe from "stripe";
 
-import { db } from "@/db";
-import { clinicsTable, usersToClinicsTable } from "@/db/schema";
 import { auth } from "@/lib/auth";
+import { actionClient } from "@/lib/next-safe-action";
 
-export const createClinic = async (name: string) => {
+export const createStripeCheckout = actionClient.action(async () => {
   const session = await auth.api.getSession({
     headers: await headers(),
   });
   if (!session?.user) {
     throw new Error("Unauthorized");
   }
-  const [clinic] = await db.insert(clinicsTable).values({ name }).returning();
-  await db.insert(usersToClinicsTable).values({
-    userId: session.user.id,
-    clinicId: clinic.id,
+  if (!process.env.STRIPE_SECRET_KEY) {
+    throw new Error("Stripe secret key not found");
+  }
+  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+    apiVersion: "2025-05-28.basil",
   });
-  redirect("/dashboard");
-};
+  const { id: sessionId } = await stripe.checkout.sessions.create({
+    payment_method_types: ["card"],
+    mode: "subscription",
+    success_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard`,
+    cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard`,
+    subscription_data: {
+      metadata: {
+        userId: session.user.id,
+      },
+    },
+    line_items: [
+      {
+        price: process.env.STRIPE_ESSENTIAL_PLAN_PRICE_ID,
+        quantity: 1,
+      },
+    ],
+  });
+  return {
+    sessionId,
+  };
+});
