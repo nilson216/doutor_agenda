@@ -26,7 +26,7 @@ const DoctorsPage = async () => {
     where: eq(doctorsTable.clinicId, session!.user.clinic!.id),
   });
   return (
-    <WithAuthentication mustHaveClinic mustHavePlan>
+    <WithAuthentication mustHaveClinic /* mustHavePlan */>
       <PageContainer>
         <PageHeader>
           <PageHeaderContent>
