@@ -36,6 +36,15 @@ const DashboardPage = async ({ searchParams }: DashboardPageProps) => {
   const session = await auth.api.getSession({
     headers: await headers(),
   });
+  if (!session?.user) {
+    redirect("/authentication");
+  }
+  if (!session.user.clinic) {
+    redirect("/clinic-form");
+  }
+  // if (!session.user.plan) {
+  //   redirect("/new-subscription");
+  // }
   const { from, to } = await searchParams;
   if (!from || !to) {
     redirect(
@@ -57,7 +66,7 @@ const DashboardPage = async ({ searchParams }: DashboardPageProps) => {
     session: {
       user: {
         clinic: {
-          id: session!.user.clinic!.id,
+          id: session.user.clinic.id,
         },
       },
     },
@@ -65,52 +74,52 @@ const DashboardPage = async ({ searchParams }: DashboardPageProps) => {
 
   return (
     <WithAuthentication mustHaveClinic /* mustHavePlan */>
-      <PageContainer>
-        <PageHeader>
-          <PageHeaderContent>
-            <PageTitle>Dashboard</PageTitle>
-            <PageDescription>
-              Tenha uma visão geral da sua clínica.
-            </PageDescription>
-          </PageHeaderContent>
-          <PageActions>
-            <DatePicker />
-          </PageActions>
-        </PageHeader>
-        <PageContent>
-          <StatsCards
+    <PageContainer>
+      <PageHeader>
+        <PageHeaderContent>
+          <PageTitle>Dashboard</PageTitle>
+          <PageDescription>
+            Tenha uma visão geral da sua clínica.
+          </PageDescription>
+        </PageHeaderContent>
+        <PageActions>
+          <DatePicker />
+        </PageActions>
+      </PageHeader>
+      <PageContent>
+        <StatsCards
             totalRevenue={
               totalRevenue.total ? Number(totalRevenue.total) : null
             }
-            totalAppointments={totalAppointments.total}
-            totalPatients={totalPatients.total}
-            totalDoctors={totalDoctors.total}
-          />
-          <div className="grid grid-cols-[2.25fr_1fr] gap-4">
-            <AppointmentsChart dailyAppointmentsData={dailyAppointmentsData} />
-            <TopDoctors doctors={topDoctors} />
-          </div>
-          <div className="grid grid-cols-[2.25fr_1fr] gap-4">
-            <Card>
-              <CardHeader>
-                <div className="flex items-center gap-3">
-                  <Calendar className="text-muted-foreground" />
-                  <CardTitle className="text-base">
-                    Agendamentos de hoje
-                  </CardTitle>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <DataTable
-                  columns={appointmentsTableColumns}
-                  data={todayAppointments}
-                />
-              </CardContent>
-            </Card>
-            <TopSpecialties topSpecialties={topSpecialties} />
-          </div>
-        </PageContent>
-      </PageContainer>
+          totalAppointments={totalAppointments.total}
+          totalPatients={totalPatients.total}
+          totalDoctors={totalDoctors.total}
+        />
+        <div className="grid grid-cols-[2.25fr_1fr] gap-4">
+          <AppointmentsChart dailyAppointmentsData={dailyAppointmentsData} />
+          <TopDoctors doctors={topDoctors} />
+        </div>
+        <div className="grid grid-cols-[2.25fr_1fr] gap-4">
+          <Card>
+            <CardHeader>
+              <div className="flex items-center gap-3">
+                <Calendar className="text-muted-foreground" />
+                <CardTitle className="text-base">
+                  Agendamentos de hoje
+                </CardTitle>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <DataTable
+                columns={appointmentsTableColumns}
+                data={todayAppointments}
+              />
+            </CardContent>
+          </Card>
+          <TopSpecialties topSpecialties={topSpecialties} />
+        </div>
+      </PageContent>
+    </PageContainer>
     </WithAuthentication>
   );
 };
